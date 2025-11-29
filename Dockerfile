@@ -6,7 +6,11 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y \
     wget \
     gnupg \
+    ffmpeg \
+    tesseract-ocr \
     && rm -rf /var/lib/apt/lists/*
+
+
 
 # Copy project files
 COPY . .
