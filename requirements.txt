@@ -8,3 +8,4 @@ openai
 python-multipart
 beautifulsoup4
 markdown
+python-dotenv
