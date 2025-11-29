@@ -1,8 +1,9 @@
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import uvicorn
 import os
 import logging
+
 from solver import solve_quiz
 from dotenv import load_dotenv
 
