@@ -1,13 +1,11 @@
-import asyncio
-from playwright.async_api import async_playwright
-
-import os
-import json
 import logging
+import json
+import os
+from urllib.parse import urljoin
 import httpx
 from playwright.async_api import async_playwright
 from openai import OpenAI
-from urllib.parse import urljoin
+
 
 logger = logging.getLogger(__name__)
 
@@ -123,7 +121,6 @@ async def transcribe_audio(file_url: str):
     logger.info(f"Transcribing audio from {file_url}")
     import speech_recognition as sr
     from pydub import AudioSegment
-    import io
     import tempfile
 
     try:
@@ -272,6 +269,9 @@ async def solve_quiz(url: str, email: str, secret: str):
                   - "Cutoff: X" usually means "Sum of values in the column where value > X". Try that first. If that fails, try "Count of values > X".
                 - For Audio tasks:
                   - Transcribe the audio to get the text/number.
+                - For Image tasks:
+                  - Use `run_python` with `pillow` and `pytesseract` to extract text (OCR).
+                  - Libraries available: `pandas`, `numpy`, `scikit-learn`, `scipy`, `pillow` (PIL), `pytesseract`.
                 """,
             },
             {"role": "user", "content": f"Start the quiz at {url}"},
