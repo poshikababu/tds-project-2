@@ -1,0 +1,22 @@
+[project]
+name = "tds-project-2"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "beautifulsoup4>=4.14.2",
+    "fastapi>=0.122.0",
+    "httpx>=0.28.1",
+    "markdown>=3.10",
+    "openai>=2.8.1",
+    "pandas>=2.3.3",
+    "playwright>=1.56.0",
+    "pydub>=0.25.1",
+    "pypdf>=6.4.0",
+    "python-dotenv>=1.2.1",
+    "python-multipart>=0.0.20",
+    "requests>=2.32.5",
+    "speechrecognition>=3.14.4",
+    "uvicorn>=0.38.0",
+]
