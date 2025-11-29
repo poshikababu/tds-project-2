@@ -1,55 +1,61 @@
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
+from fastapi import FastAPI, Request, BackgroundTasks
+from fastapi.responses import JSONResponse
+from fastapi.exceptions import HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from agent import run_agent
+from dotenv import load_dotenv
 import uvicorn
 import os
-import logging
+from shared_store import url_time, BASE64_STORE
+import time
 
-from solver import solve_quiz
-from dotenv import load_dotenv
-
-# Load environment variables
 load_dotenv()
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
+EMAIL = os.getenv("EMAIL") 
+SECRET = os.getenv("SECRET")
 
 app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # or specific domains
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+START_TIME = time.time()
+@app.get("/healthz")
+def healthz():
+    """Simple liveness check."""
+    return {
+        "status": "ok",
+        "uptime_seconds": int(time.time() - START_TIME)
+    }
 
-
-class QuizRequest(BaseModel):
-    email: str
-    secret: str
-    url: str
-
-
-@app.post("/run")
-async def run_quiz(request: QuizRequest):
-    # Verify secret
-    expected_secret = os.getenv("AIPROXY_TOKEN")
-    if expected_secret and request.secret != expected_secret:
-        # If AIPROXY_TOKEN is set, we must match it.
-        # If not set, we might be in a dev mode where we accept anything, or we should reject.
-        # Given the instructions imply a specific token, we should probably enforce it if known.
-        # But for local testing without the token set, we might want to be lenient or require it to be set.
-        # Let's enforce it if the env var is present.
-        raise HTTPException(status_code=401, detail="Invalid secret")
-
-    logger.info(f"Received request for {request.email} with URL {request.url}")
-
-    # Basic validation
-    if not request.email or not request.secret or not request.url:
-        raise HTTPException(status_code=400, detail="Missing required fields")
-
-    # Execute the solver
+@app.post("/solve")
+async def solve(request: Request, background_tasks: BackgroundTasks):
     try:
-        result = await solve_quiz(request.url, request.email, request.secret)
-        return result
-    except Exception as e:
-        logger.error(f"Error solving quiz: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        data = await request.json()
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid JSON")
+    if not data:
+        raise HTTPException(status_code=400, detail="Invalid JSON")
+    url = data.get("url")
+    secret = data.get("secret")
+    if not url or not secret:
+        raise HTTPException(status_code=400, detail="Invalid JSON")
+    
+    if secret != SECRET:
+        raise HTTPException(status_code=403, detail="Invalid secret")
+    url_time.clear() 
+    BASE64_STORE.clear()  
+    print("Verified starting the task...")
+    os.environ["url"] = url
+    os.environ["offset"] = "0"
+    url_time[url] = time.time()
+    background_tasks.add_task(run_agent, url)
+
+    return JSONResponse(status_code=200, content={"status": "ok"})
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=7860)
