@@ -8,4 +8,13 @@ openai
 python-multipart
 beautifulsoup4
 markdown
+SpeechRecognition
+pydub
 python-dotenv
+numpy
+scikit-learn
+pyarrow
+fastparquet
+scipy
+pillow
+pytesseract
