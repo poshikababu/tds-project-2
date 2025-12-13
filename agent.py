@@ -145,25 +145,25 @@ def agent_node(state: AgentState):
 
     if prev_time is not None:
         prev_time = float(prev_time)
-        diff = cur_time - prev_time
+        # Timeout check disabled as per user request (24 questions requires > 10m)
+        # if diff >= 600 or (offset != "0" and (cur_time - float(offset)) > 300):
+        #     print(
+        #         f"Timeout exceeded ({diff}s) — instructing LLM to purposely submit wrong answer."
+        #     )
 
-        if diff >= 600 or (offset != "0" and (cur_time - float(offset)) > 300):
-            print(
-                f"Timeout exceeded ({diff}s) — instructing LLM to purposely submit wrong answer."
-            )
+        #     fail_instruction = f"""
+        #     You have exceeded the time limit for this task.
+        #     Immediately call the `post_request` tool and submit a WRONG answer for the CURRENT quiz.
+        #     USE THIS URL: {cur_url}
+        #     """
+        fail_instruction = ""
 
-            fail_instruction = f"""
-            You have exceeded the time limit for this task.
-            Immediately call the `post_request` tool and submit a WRONG answer for the CURRENT quiz.
-            USE THIS URL: {cur_url}
-            """
+        # Using HumanMessage (as you correctly implemented)
+        fail_msg = HumanMessage(content=fail_instruction)
 
-            # Using HumanMessage (as you correctly implemented)
-            fail_msg = HumanMessage(content=fail_instruction)
-
-            # We invoke the LLM immediately with this new instruction
-            result = llm.invoke(state["messages"] + [fail_msg])
-            return {"messages": [result]}
+        # We invoke the LLM immediately with this new instruction
+        result = llm.invoke(state["messages"] + [fail_msg])
+        return {"messages": [result]}
     # --- TIME HANDLING END ---
 
     trimmed_messages = trim_messages(
