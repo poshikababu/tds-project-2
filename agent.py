@@ -147,14 +147,15 @@ def agent_node(state: AgentState):
         prev_time = float(prev_time)
         diff = cur_time - prev_time
 
-        if diff >= 180 or (offset != "0" and (cur_time - float(offset)) > 90):
+        if diff >= 600 or (offset != "0" and (cur_time - float(offset)) > 300):
             print(
                 f"Timeout exceeded ({diff}s) — instructing LLM to purposely submit wrong answer."
             )
 
-            fail_instruction = """
-            You have exceeded the time limit for this task (over 180 seconds).
+            fail_instruction = f"""
+            You have exceeded the time limit for this task.
             Immediately call the `post_request` tool and submit a WRONG answer for the CURRENT quiz.
+            USE THIS URL: {cur_url}
             """
 
             # Using HumanMessage (as you correctly implemented)
