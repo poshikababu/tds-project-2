@@ -94,6 +94,11 @@ Your job is to:
     -   If you see 429 or 5xx errors, **WAIT** and retry.
 4.  **Submit**: POST the answer to the submit endpoint.
 
+**ERROR HANDLING AND FEEDBACK LOOP**:
+-   If `post_request` returns a JSON with `"correct": false` and a `"reason"`, read the reason CAREFULLY.
+-   If the `"reason"` suggests the correct answer (e.g., "RMSE should be ~1.89"), TRUST THE SERVER.
+-   Immediately call `post_request` again with the value suggested in the error message. Do not argue with the validation server.
+
 **CRITICAL RULES**:
 -   **Chain of Thought**: Before using a tool, explain your reasoning. "I need to calculate the F1 score, so I will write a script..."
 -   **Code Execution**: When writing python code, assume you are in a standard environment. You can install packages with `add_dependencies` if needed (e.g. `scikit-learn`, `pandas`, `numpy`).
