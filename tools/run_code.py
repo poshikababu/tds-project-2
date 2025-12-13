@@ -4,8 +4,10 @@ from langchain_core.tools import tool
 from dotenv import load_dotenv
 import os
 from google.genai import types
+
 load_dotenv()
-client = genai.Client()
+# client = genai.Client() # Removed to prevent import-time crash on Render
+
 
 def strip_code_fences(code: str) -> str:
     code = code.strip()
@@ -17,10 +19,11 @@ def strip_code_fences(code: str) -> str:
         code = code.rsplit("\n", 1)[0]
     return code.strip()
 
+
 @tool
 def run_code(code: str) -> dict:
     """
-    Executes a Python code 
+    Executes a Python code
     This tool:
       1. Takes in python code as input
       3. Writes code into a temporary .py file
@@ -41,7 +44,7 @@ def run_code(code: str) -> dict:
             "return_code": <exit code>
         }
     """
-    try: 
+    try:
         filename = "runner.py"
         os.makedirs("LLMFiles", exist_ok=True)
         with open(os.path.join("LLMFiles", filename), "w") as f:
@@ -52,7 +55,7 @@ def run_code(code: str) -> dict:
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True,
-            cwd="LLMFiles"
+            cwd="LLMFiles",
         )
         stdout, stderr = proc.communicate()
         if len(stdout) >= 10000:
@@ -60,14 +63,6 @@ def run_code(code: str) -> dict:
         if len(stderr) >= 10000:
             return stderr[:10000] + "...truncated due to large size"
         # --- Step 4: Return everything ---
-        return {
-            "stdout": stdout,
-            "stderr": stderr,
-            "return_code": proc.returncode
-        }
+        return {"stdout": stdout, "stderr": stderr, "return_code": proc.returncode}
     except Exception as e:
-        return {
-            "stdout": "",
-            "stderr": str(e),
-            "return_code": -1
-        }
+        return {"stdout": "", "stderr": str(e), "return_code": -1}
